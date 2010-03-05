@@ -1,101 +1,101 @@
 (ns tetris
-  (:use [clojure.contrib.fcase :only (case)]
+  (:use [clojure.contrib.def :only (defvar)]
+	[clojure.contrib.fcase :only (case)]
 	[clojure.contrib.seq-utils :only (positions)])
   (:import (java.awt Color Dimension)
 	   (java.awt.event KeyListener KeyEvent)
 	   (javax.swing JPanel JFrame)))
 
-;; Contrary to its name, this map contains not only the block types, but also
-;; the rotation phases they can take."
-(def block-types
-     {:square [[0 0 0 0
-		0 1 1 0
-		0 1 1 0
-		0 0 0 0]]
-      :lright [[0 1 0 0
-		0 1 0 0
-		0 1 1 0
-		0 0 0 0]
-	       [0 0 1 0
-		1 1 1 0
-		0 0 0 0
-		0 0 0 0]
-	       [1 1 0 0
-		0 1 0 0
-		0 1 0 0
-		0 0 0 0]
-	       [0 0 0 0
-		1 1 1 0
-		1 0 0 0
-		0 0 0 0]]
-      :lleft [[0 0 1 0
-	       0 0 1 0
-	       0 1 1 0
-	       0 0 0 0]
-	      [0 0 0 0
-	       0 1 1 1
-	       0 0 0 1
-	       0 0 0 0]
-	      [0 0 1 1
-	       0 0 1 0
-	       0 0 1 0
-	       0 0 0 0]
-	      [0 1 0 0
-	       0 1 1 1
-	       0 0 0 0
-	       0 0 0 0]]
-      :sright [[0 0 0 0 
-		0 1 1 0 
-		1 1 0 0 
-		0 0 0 0]
-	       [0 1 0 0
-		0 1 1 0
-		0 0 1 0
-		0 0 0 0]]
-      :sleft [[0 0 0 0
-	       0 1 1 0
-	       0 0 1 1
-	       0 0 0 0]
-	      [0 0 1 0
-	       0 1 1 0
-	       0 1 0 0
-	       0 0 0 0]]
-      :stick [[0 1 0 0
-	       0 1 0 0
-	       0 1 0 0
-	       0 1 0 0]
-	      [0 0 0 0
-	       1 1 1 1
-	       0 0 0 0
-	       0 0 0 0]]
-      :tshape [[0 0 0 0
-		0 1 0 0
-		1 1 1 0
-		0 0 0 0]
-	       [0 0 0 0
-		0 1 0 0
-		1 1 0 0
-		0 1 0 0]
-	       [0 0 0 0
-		0 0 0 0
-		1 1 1 0
-		0 1 0 0]
-	       [0 0 0 0
-		0 1 0 0
-		0 1 1 0
-		0 1 0 0]]})
+(defvar block-types
+  {:square [[0 0 0 0
+	     0 1 1 0
+	     0 1 1 0
+	     0 0 0 0]]
+   :lright [[0 1 0 0
+	     0 1 0 0
+	     0 1 1 0
+	     0 0 0 0]
+	    [0 0 1 0
+	     1 1 1 0
+	     0 0 0 0
+	     0 0 0 0]
+	    [1 1 0 0
+	     0 1 0 0
+	     0 1 0 0
+	     0 0 0 0]
+	    [0 0 0 0
+	     1 1 1 0
+	     1 0 0 0
+	     0 0 0 0]]
+   :lleft [[0 0 1 0
+	    0 0 1 0
+	    0 1 1 0
+	    0 0 0 0]
+	   [0 0 0 0
+	    0 1 1 1
+	    0 0 0 1
+	    0 0 0 0]
+	   [0 0 1 1
+	    0 0 1 0
+	    0 0 1 0
+	    0 0 0 0]
+	   [0 1 0 0
+	    0 1 1 1
+	    0 0 0 0
+	    0 0 0 0]]
+   :sright [[0 0 0 0 
+	     0 1 1 0 
+	     1 1 0 0 
+	     0 0 0 0]
+	    [0 1 0 0
+	     0 1 1 0
+	     0 0 1 0
+	     0 0 0 0]]
+   :sleft [[0 0 0 0
+	    0 1 1 0
+	    0 0 1 1
+	    0 0 0 0]
+	   [0 0 1 0
+	    0 1 1 0
+	    0 1 0 0
+	    0 0 0 0]]
+   :stick [[0 1 0 0
+	    0 1 0 0
+	    0 1 0 0
+	    0 1 0 0]
+	   [0 0 0 0
+	    1 1 1 1
+	    0 0 0 0
+	    0 0 0 0]]
+   :tshape [[0 0 0 0
+	     0 1 0 0
+	     1 1 1 0
+	     0 0 0 0]
+	    [0 0 0 0
+	     0 1 0 0
+	     1 1 0 0
+	     0 1 0 0]
+	    [0 0 0 0
+	     0 0 0 0
+	     1 1 1 0
+	     0 1 0 0]
+	    [0 0 0 0
+	     0 1 0 0
+	     0 1 1 0
+	     0 1 0 0]]}
+  "Contrary to its name, this map contains not only the block types, but also
+the rotation phases they can take.")
 
-;; Colors associated with the shape types."
-(def block-colors
-     {:square Color/red
-      :lright Color/yellow
-      :lleft  Color/green
-      :sright Color/magenta
-      :sleft  Color/gray
-      :stick  Color/cyan
-      :tshape Color/blue})
+(defvar block-colors
+  {:square Color/red
+   :lright Color/yellow
+   :lleft  Color/green
+   :sright Color/magenta
+   :sleft  Color/gray
+   :stick  Color/cyan
+   :tshape Color/blue}
+  "Colors associated with the shape types.")
 
-;; The block object."
 (defstruct block :type :rotation :position)
 
 (defn rotate
@@ -106,10 +106,10 @@
 (defn rotate-left [block] (rotate block 1))
 (defn rotate-right [block] (rotate block -1))
 
-;; TODO: put this to a separate "graphical layer/file".
-;; Size of a "point" on the screen in pixels. A "point" is the size of the
-;; building blocks in the tetris shapes, i.e. 1/4 of the square."
-(def point-size 10)
+(defvar point-size 10
+  "Size of a `point' on the screen in pixels. A `point' is the size of the
+building blocks in the tetris shapes, i.e. 1/4 of the square.
+TODO: put this to a separate `graphical layer/file'.")
 
 (defn point-to-screen-rect [pt]
   "Converts a point to a rectangle on the screen (more specifically, game panel).
