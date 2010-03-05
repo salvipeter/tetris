@@ -1,6 +1,7 @@
-(ns tetris
+(ns tetris.main
   (:use [clojure.contrib.fcase :only (case)]
-	[clojure.contrib.seq-utils :only (positions)])
+	[clojure.contrib.seq-utils :only (positions)]
+        [tetris.graphics :only (gr-hello)])
   (:import (java.awt Color Dimension)
 	   (java.awt.event KeyListener KeyEvent)
 	   (javax.swing JPanel JFrame)))
