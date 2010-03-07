@@ -1,13 +1,11 @@
 ;; Defines the (global) data types, etc.
 (ns tetris.data
   ;(:require )
-  ;(:use )
+  (:use [clojure.contrib.def :only (defvar)])
   (:import (java.awt Color))
   )
 
-;; Contrary to its name, this map contains not only the block types, but also
-;; the rotation phases they can take."
-(def block-types
+(defvar block-types
      {:square [[0 0 0 0
 		0 1 1 0
 		0 1 1 0
@@ -83,17 +81,19 @@
 	       [0 0 0 0
 		0 1 0 0
 		0 1 1 0
-		0 1 0 0]]})
+		0 1 0 0]]}
+  "Contrary to its name, this map contains not only the block types, but also
+the rotation phases they can take.")
 
-;; Colors associated with the shape types."
-(def block-colors
+(defvar block-colors
      {:square Color/red
       :lright Color/yellow
       :lleft  Color/green
       :sright Color/magenta
       :sleft  Color/gray
       :stick  Color/cyan
-      :tshape Color/blue})
+      :tshape Color/blue}
+  "Colors associated with the shape types.")
 
 ;; The block object."
 (defstruct block :type :rotation :position)

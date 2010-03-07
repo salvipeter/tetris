@@ -21,7 +21,7 @@
       :rotation 0)))
 
 (defn rotation-test-panel [block]
-  "Displayes a test panel, which enables the user to see how the rotation phases
+  "Displays a test panel, which enables the user to see how the rotation phases
    of the block types look like. Controls are:
      - cursor right: rotate right,
      - cursor left: rotate left,
