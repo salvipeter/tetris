@@ -24,7 +24,7 @@
   "Paints a block to g."
   (let [color (block-colors (:type block))
 	shape (nth ((:type block) block-types) (:rotation block))
-	position [0 0]]
+	position (:position block)]
     (doall (for [x (range 4) y (range 4)]
 	     (when-not (zero? (nth shape (+ (* 4 y) x)))
 	       (fill-point g (map + position [x y]) color))))))

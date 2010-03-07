@@ -97,3 +97,12 @@ the rotation phases they can take.")
 
 ;; The block object."
 (defstruct block :type :rotation :position)
+
+(defvar default-block (struct block :square 0 [0 0])
+  "A block with default attributes. See get-block.")
+(defn get-block
+  "Returns a block. Help! How to do this w/o default-block?"
+  ([] default-block)
+  ([type] (assoc default-block :type type))
+  ([type rotation] (assoc default-block :type type, :rotation rotation))
+  ([type rotation position] (struct block type rotation position)))

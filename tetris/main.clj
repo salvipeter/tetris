@@ -4,4 +4,4 @@
   ;(:import)
   )
 
-(rotation-test-panel (struct block :square 0))
+(rotation-test-panel (get-block :square 0))
