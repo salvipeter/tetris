@@ -95,10 +95,14 @@ the rotation phases they can take.")
       :tshape Color/blue}
   "Colors associated with the shape types.")
 
-;; The block object."
+;; The block object.
 (defstruct block :type :rotation :position)
 
-(defvar default-block (struct block :square 0 [0 0])
+; Should be defvar-. Left it like this so that I am constantly reminded of how
+; metadata can be used.
+(defvar default-block
+  #^{:private true}
+  (struct block :square 0 [0 0])
   "A block with default attributes. See get-block.")
 (defn get-block
   "Returns a block. Help! How to do this w/o default-block?"
@@ -106,3 +110,4 @@ the rotation phases they can take.")
   ([type] (assoc default-block :type type))
   ([type rotation] (assoc default-block :type type, :rotation rotation))
   ([type rotation position] (struct block type rotation position)))
+
