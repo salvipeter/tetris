@@ -12,3 +12,10 @@
     (assoc block :rotation (mod (+ (:rotation block) dir) n))))
 (defn rotate-left [block] (rotate block 1))
 (defn rotate-right [block] (rotate block -1))
+
+(defn fall
+  "Moves a block downwards (does not check for collision).
+Both normal falling and fast-falling should use this function."
+  [block]
+  (let [[x y] (:position block)]
+    (assoc block :position [x (inc y)])))

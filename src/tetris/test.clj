@@ -48,4 +48,3 @@
 	frame (JFrame. "Tetris")]
     (doto panel (.setBackground Color/black) (.setFocusable true) (.addKeyListener panel))
     (doto frame (.add panel) (.pack) (.setVisible true))))
-
