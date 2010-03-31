@@ -4,4 +4,8 @@
   ;(:import)
   )
 
-(rotation-test-panel (get-block :square 0))
+(defn rotation-test []
+  (rotation-test-panel (get-block :square 0)))
+
+(defn movement-test []
+  (movement-test-panel (get-block :square 0 [(- (/ width 2) 2) 0])))

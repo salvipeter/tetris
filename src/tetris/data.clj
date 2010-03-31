@@ -98,16 +98,33 @@ the rotation phases they can take.")
 ;; The block object.
 (defstruct block :type :rotation :position)
 
-; Should be defvar-. Left it like this so that I am constantly reminded of how
-; metadata can be used.
-(defvar default-block
-  #^{:private true}
-  (struct block :square 0 [0 0])
-  "A block with default attributes. See get-block.")
-(defn get-block
-  "Returns a block. Help! How to do this w/o default-block?"
-  ([] default-block)
-  ([type] (assoc default-block :type type))
-  ([type rotation] (assoc default-block :type type, :rotation rotation))
-  ([type rotation position] (struct block type rotation position)))
+(let [default-block (struct block :square 0 [0 0])]
+  (defn get-block
+    "Returns a block."
+    ([] default-block)
+    ([type] (assoc default-block :type type))
+    ([type rotation] (assoc default-block :type type, :rotation rotation))
+    ([type rotation position] (struct block type rotation position))))
 
+(defn block-shape [block]
+  (((:type block) block-types) (:rotation block)))
+(defn shape-element [shape [x y]]
+  (not (zero? (shape (+ (* 4 y) x)))))
+
+(def width 14)
+(def height 20)
+(def field (take (* width height) (map ref (repeat :empty))))
+
+(defn clear-field! []
+  (doseq [element field]
+    (dosync (ref-set element :empty))))
+
+(defn get-element
+  "One `pixel' of the playing field."
+  [[x y]]
+  @(nth field (+ (* y width) x)))
+
+(defn set-element!
+  "Set one `pixel' of the playing field."
+  [[x y] val]
+  (dosync (ref-set (nth field (+ (* y width) x)) val)))

@@ -20,12 +20,17 @@
     (.setColor g color)
     (.fillRect g x y width height)))
 
-(defn paint [g block]
+(defn paint-block [g block]
   "Paints a block to g."
   (let [color (block-colors (:type block))
-	shape (nth ((:type block) block-types) (:rotation block))
+	shape (block-shape block)
 	position (:position block)]
-    (doall (for [x (range 4) y (range 4)]
-	     (when-not (zero? (nth shape (+ (* 4 y) x)))
-	       (fill-point g (map + position [x y]) color))))))
+    (doseq [x (range 4) y (range 4)]
+      (when (shape-element shape [x y])
+	(fill-point g (map + position [x y]) color)))))
 
+(defn paint-field [g]
+  (doseq [x (range width) y (range height)]
+    (let [type (get-element [x y])]
+      (when-not (= type :empty)
+	(fill-point g [x y] (block-colors type))))))
