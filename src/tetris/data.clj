@@ -114,6 +114,7 @@ the rotation phases they can take.")
 (def width 14)
 (def height 20)
 (def field (take (* width height) (map ref (repeat :empty))))
+(def current-block (ref nil))
 
 (defn clear-field! []
   (doseq [element field]
@@ -128,3 +129,5 @@ the rotation phases they can take.")
   "Set one `pixel' of the playing field."
   [[x y] val]
   (dosync (ref-set (nth field (+ (* y width) x)) val)))
+
+(def turn-millis (ref 250))

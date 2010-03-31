@@ -6,7 +6,7 @@
 
 ;; Size of a "point" on the screen in pixels. A "point" is the size of the
 ;; building blocks in the tetris shapes, i.e. 1/4 of the square."
-(def point-size 10)
+(def point-size 20)
 
 (defn point-to-screen-rect [pt]
   "Converts a point to a rectangle on the screen (more specifically, game panel).
