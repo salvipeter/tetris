@@ -32,9 +32,7 @@ Both normal falling and fast-falling should use this function."
 (defn full-rows
   "Returns a lazy list of y-coordinates."
   []
-  (filter (fn [y]
-	    (for [x (range width)]
-	      (not-any? (= (get-element [x y]) :empty))))
+  (filter (fn [y] (not-any? #(= (get-element [% y]) :empty) (range width)))
 	  (range height)))
 
 (defn record-block! [block]
@@ -45,8 +43,8 @@ Both normal falling and fast-falling should use this function."
 	(set-element! [(+ x0 x) (+ y0 y)] (:type block))))))
 
 (defn expunge-row! [row]
-  (doseq [y (range row) x (range width)]
-    (set-element! [x (inc y)] (get-element [x y]))))
+  (doseq [y (range row 0 -1) x (range width)]
+    (set-element! [x y] (get-element [x (dec y)]))))
 
 (defn rotate
   "Rotates a block to the left or right, depending on dir (+1 or -1, respectively)."

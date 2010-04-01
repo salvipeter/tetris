@@ -41,6 +41,9 @@
 
 (defn reincarnate-block [gui]
   (record-block! @current-block)
+  (let [full (full-rows)]
+    (when-not (empty? full)
+      (doseq [y full] (expunge-row! y))))
   (dosync (ref-set current-block (get-random-block)))
   (when-not (placeable? @current-block)
     (.stop (:timer gui))
