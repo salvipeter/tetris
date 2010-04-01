@@ -1,6 +1,24 @@
 			  -*- mode: org -*-
 
-* Feladatok
+* Játszható szint
+- teljes sorok kiirtása
+- pause
 - next
 - score
-- szebb panel (hely a nextnek, score, ...)
+- level
+- szebb panel (hely a nextnek, score-nak, levelnek)
+* Standard szint
+- szebb (kép-alapú) grafika
+- (pályától függő) zene
+- (swing-gui) menü => beállítások, about stb.
+- high score-ok tárolása
+** Beállítások
+- grafika (témák)
+- billentyűk
+- high scores törlése
+- éppen leérkezett blokk mozgatható-e még egy "ütemnyi" ideig
+* Profi szint
+- több játékosos üzemmód (hot-seat, net) [különböző változatok]
+- központi (netes) score
+- speciális pályák (téli csúszós stb.)
+- ???
