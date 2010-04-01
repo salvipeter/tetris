@@ -1,9 +1,6 @@
 ;; I don't know if this file is really should be separate from data. Anyway...
 (ns tetris.logic
-  ;(:require )
-  (:use tetris.data)
-  ;(:import )
-  )
+  (:use tetris.data))
 
 (defn fall
   "Moves a block downwards (does not check for collision).

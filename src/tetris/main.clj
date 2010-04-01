@@ -7,8 +7,7 @@
 	tetris.util)
   (:import (java.awt Color Dimension)
            (java.awt.event ActionListener KeyAdapter KeyEvent)
-	   (javax.swing JFrame JPanel Timer))
-  )
+	   (javax.swing JFrame JPanel Timer)))
 
 (defn rotation-test []
   (rotation-test-panel (get-block :square 0)))
@@ -30,14 +29,14 @@
 (defn menu-key-listener [gui]
   (proxy [KeyAdapter] []
     (keyPressed [e]
-		(if (= (.getKeyCode e) KeyEvent/VK_Q)
-		  (.dispose (:frame gui))
-		  (do 
-		    (clear-field!)
-		    (change-key-listener (:panel gui) (game-key-listener gui))
-		    (dosync (ref-set current-block (get-random-block)))
-		    (.start (:timer gui))
-		    (.repaint (:panel gui)))))))
+      (if (= (.getKeyCode e) KeyEvent/VK_Q)
+	(.dispose (:frame gui))
+	(do 
+	  (clear-field!)
+	  (change-key-listener (:panel gui) (game-key-listener gui))
+	  (dosync (ref-set current-block (get-random-block)))
+	  (.start (:timer gui))
+	  (.repaint (:panel gui)))))))
 
 (defn reincarnate-block [gui]
   (record-block! @current-block)
@@ -56,42 +55,42 @@
 (defn game-key-listener [gui]
   (proxy [KeyAdapter] []
     (keyPressed [e]
-		(in-case (.getKeyCode e)
-			 [KeyEvent/VK_O]
-			 (dosync (alter current-block rotate-right))
-			 [KeyEvent/VK_U KeyEvent/VK_UP]
-			 (dosync (alter current-block rotate-left))
-			 [KeyEvent/VK_L KeyEvent/VK_RIGHT]
-			 (dosync (alter current-block move-right))
-			 [KeyEvent/VK_J KeyEvent/VK_LEFT]
-			 (dosync (alter current-block move-left))
-			 [KeyEvent/VK_K KeyEvent/VK_DOWN]
-			 (dosync (alter current-block fall))
-			 [KeyEvent/VK_SPACE]
-			 (dosync (alter current-block drop-down))
-			 [KeyEvent/VK_Q]
-			 (do (.dispose (:frame gui))
-			     (.stop (:timer gui))))
-		(reincarnate-block-if-needed gui)
-		(.repaint (:panel gui)))))
+      (in-case (.getKeyCode e)
+	       [KeyEvent/VK_O]
+	       (dosync (alter current-block rotate-right))
+	       [KeyEvent/VK_U KeyEvent/VK_UP]
+	       (dosync (alter current-block rotate-left))
+	       [KeyEvent/VK_L KeyEvent/VK_RIGHT]
+	       (dosync (alter current-block move-right))
+	       [KeyEvent/VK_J KeyEvent/VK_LEFT]
+	       (dosync (alter current-block move-left))
+	       [KeyEvent/VK_K KeyEvent/VK_DOWN]
+	       (dosync (alter current-block fall))
+	       [KeyEvent/VK_SPACE]
+	       (dosync (alter current-block drop-down))
+	       [KeyEvent/VK_Q]
+	       (do (.dispose (:frame gui))
+		   (.stop (:timer gui))))
+      (reincarnate-block-if-needed gui)
+      (.repaint (:panel gui)))))
 
 (defn game []
   (let [timer (Timer. @turn-millis nil)
 	frame (JFrame. "Tetris")
 	panel (proxy [JPanel ActionListener] []
 		(paintComponent [g]
-				(proxy-super paintComponent g)
-				(paint-field g)
-				(when @current-block
-				  (paint-block g @current-block)))
+		  (proxy-super paintComponent g)
+		  (paint-field g)
+		  (when @current-block
+		    (paint-block g @current-block)))
 		(actionPerformed [e]
-				 (let [gui {:timer timer :frame frame :panel this}]
-				   (dosync (alter current-block fall))
-				   (reincarnate-block-if-needed gui))
-				 (.repaint this))
+		  (let [gui {:timer timer :frame frame :panel this}]
+		    (dosync (alter current-block fall))
+		    (reincarnate-block-if-needed gui))
+		  (.repaint this))
 		(getPreferredSize []
-				  (Dimension. (* width point-size)
-					      (* height point-size))))
+		  (Dimension. (* width point-size)
+			      (* height point-size))))
 	gui {:timer timer :frame frame :panel panel}]
     (dosync (ref-set current-block nil))
     (.addActionListener timer panel)
