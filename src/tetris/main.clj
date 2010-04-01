@@ -49,8 +49,7 @@
     (.stop (:timer gui))
     (change-key-listener (:panel gui) (menu-key-listener gui))))
 
-(defn fall-once [gui]
-  (dosync (alter current-block fall))
+(defn reincarnate-block-if-needed [gui]
   (when-not (placeable? (fall @current-block))
     (reincarnate-block gui)))
 
@@ -67,13 +66,13 @@
 			 [KeyEvent/VK_J KeyEvent/VK_LEFT]
 			 (dosync (alter current-block move-left))
 			 [KeyEvent/VK_K KeyEvent/VK_DOWN]
-			 (fall-once gui)
+			 (dosync (alter current-block fall))
 			 [KeyEvent/VK_SPACE]
-			 (do (dosync (alter current-block drop-down))
-			     (reincarnate-block gui))
+			 (dosync (alter current-block drop-down))
 			 [KeyEvent/VK_Q]
 			 (do (.dispose (:frame gui))
-			     (.stop (:timer gui)))) 
+			     (.stop (:timer gui))))
+		(reincarnate-block-if-needed gui)
 		(.repaint (:panel gui)))))
 
 (defn game []
@@ -87,7 +86,9 @@
 				  (paint-block g @current-block)))
 		(actionPerformed [e]
 				 (let [gui {:timer timer :frame frame :panel this}]
-				   (fall-once gui)) (.repaint this))
+				   (dosync (alter current-block fall))
+				   (reincarnate-block-if-needed gui))
+				 (.repaint this))
 		(getPreferredSize []
 				  (Dimension. (* width point-size)
 					      (* height point-size))))

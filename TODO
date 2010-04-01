@@ -21,3 +21,8 @@
 - központi (netes) score
 - speciális pályák (téli csúszós stb.)
 - ???
+* Ismert bugok / problémák
+- ha másodszor meghívom a game-et, az előző játék végállása jelenik meg
+  (nem törlődik a field)
+- a game-key-listener-ben a reincarnate-block-if-needed és a .repaint
+  akkor is meghívódnak, ha q megnyomásával a frame már eltűnt
