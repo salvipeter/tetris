@@ -4,17 +4,10 @@
 	tetris.data
 	tetris.graphics
 	tetris.logic
-        tetris.test
 	tetris.util)
   (:import (java.awt Color Dimension BorderLayout)
            (java.awt.event ActionListener KeyAdapter KeyEvent)
 	   (javax.swing JFrame JLabel JPanel Timer)))
-
-(defn rotation-test []
-  (rotation-test-panel (get-block :square 0)))
-
-(defn movement-test []
-  (movement-test-panel (get-block :square 0 [(- (/ width 2) 2) 0])))
 
 (defn get-random-block []
   (get-block (random-select (keys block-types))
@@ -42,6 +35,7 @@
 	  (set-score! gui 0)
 	  (dosync (ref-set level 5) (ref-set current-block (get-random-block)))
 	  (change-key-listener (:panel gui) (game-key-listener gui))
+	  (.setDelay (:timer gui) (levels @level))
 	  (.start (:timer gui))
 	  (.repaint (:panel gui)))))))
 
@@ -84,7 +78,7 @@
       (.repaint (:panel gui)))))
 
 (defn game []
-  (let [timer (Timer. (levels @level) nil)
+  (let [timer (Timer. 0 nil)
 	frame (JFrame. "Tetris")
 	score-label (JLabel. "Score: 0")
 	panel (proxy [JPanel ActionListener] []

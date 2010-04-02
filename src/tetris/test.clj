@@ -30,7 +30,7 @@
 	panel (proxy [JPanel KeyListener] []
 		(paintComponent [g]
 		  (proxy-super paintComponent g)
-		  (paint g @block))
+		  (paint-block g @block))
 		(keyPressed [e]
 		  (case (.getKeyCode e)
 			KeyEvent/VK_RIGHT
@@ -50,6 +50,9 @@
     (doto panel (.setBackground Color/black)
 	  (.setFocusable true) (.addKeyListener panel))
     (doto frame (.add panel) (.pack) (.setVisible true))))
+
+(defn rotation-test []
+  (rotation-test-panel (get-block :square 0)))
 
 (defn movement-test-panel [start-block]
   "Displays a test panel, which enables the user to see whether the move
@@ -103,3 +106,6 @@
     (doto panel (.setBackground Color/black)
 	  (.setFocusable true) (.addKeyListener panel))
     (doto frame (.add panel) (.pack) (.setVisible true))))
+
+(defn movement-test []
+  (movement-test-panel (get-block :square 0 [(- (/ width 2) 2) 0])))
