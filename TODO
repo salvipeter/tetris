@@ -3,8 +3,7 @@
 * Játszható szint
 - pause
 - next
-- score
-- level
+- automatikus pályaváltás
 - szebb panel (hely a nextnek, score-nak, levelnek)
 * Standard szint
 - szebb (kép-alapú) grafika

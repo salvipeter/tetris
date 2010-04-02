@@ -1,13 +1,14 @@
 (ns tetris.main
   (:use [clojure.contrib.fcase :only (in-case)]
+	[clojure.contrib.math :only (expt)]
 	tetris.data
 	tetris.graphics
 	tetris.logic
         tetris.test
 	tetris.util)
-  (:import (java.awt Color Dimension)
+  (:import (java.awt Color Dimension BorderLayout)
            (java.awt.event ActionListener KeyAdapter KeyEvent)
-	   (javax.swing JFrame JPanel Timer)))
+	   (javax.swing JFrame JLabel JPanel Timer)))
 
 (defn rotation-test []
   (rotation-test-panel (get-block :square 0)))
@@ -42,7 +43,10 @@
   (record-block! @current-block)
   (let [full (full-rows)]
     (when-not (empty? full)
-      (doseq [y full] (expunge-row! y))))
+      (doseq [y full] (expunge-row! y))
+      (dosync (alter score + (* (expt 2 @level) ([0 1 3 5 8] (count full)))))
+      (.setText (:score gui) (format "Score: %d" @score))
+      (.repaint (:score gui))))
   (dosync (ref-set current-block (get-random-block)))
   (when-not (placeable? @current-block)
     (.stop (:timer gui))
@@ -75,8 +79,10 @@
       (.repaint (:panel gui)))))
 
 (defn game []
-  (let [timer (Timer. @turn-millis nil)
+  (dosync (ref-set level 5) (ref-set score 0))
+  (let [timer (Timer. (levels @level) nil)
 	frame (JFrame. "Tetris")
+	score-label (JLabel. "Score: 0")
 	panel (proxy [JPanel ActionListener] []
 		(paintComponent [g]
 		  (proxy-super paintComponent g)
@@ -84,18 +90,20 @@
 		  (when @current-block
 		    (paint-block g @current-block)))
 		(actionPerformed [e]
-		  (let [gui {:timer timer :frame frame :panel this}]
+		  (let [gui {:timer timer :frame frame :panel this
+			     :score score-label}]
 		    (dosync (alter current-block fall))
 		    (reincarnate-block-if-needed gui))
 		  (.repaint this))
 		(getPreferredSize []
 		  (Dimension. (* width point-size)
 			      (* height point-size))))
-	gui {:timer timer :frame frame :panel panel}]
+	gui {:timer timer :frame frame :panel panel :score score-label}]
     (dosync (ref-set current-block nil))
     (.addActionListener timer panel)
     (doto panel
       (.setBackground Color/black)
       (.setFocusable true)
       (.addKeyListener (menu-key-listener gui)))
-    (doto frame (.add panel) (.pack) (.setVisible true))))
+    (doto frame (.setLayout (BorderLayout.)) (.add panel BorderLayout/CENTER)
+	  (.add score-label BorderLayout/SOUTH) (.pack) (.setVisible true))))

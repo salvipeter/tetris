@@ -128,4 +128,6 @@ the rotation phases they can take.")
   [[x y] val]
   (dosync (ref-set (nth field (+ (* y width) x)) val)))
 
-(def turn-millis (ref 250))
+(def levels [1000 800 600 500 400 300 240 180 130 80])
+(def level (ref nil))
+(def score (ref nil))
