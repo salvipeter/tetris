@@ -25,6 +25,11 @@
     (.removeKeyListener comp l))
   (.addKeyListener comp listener))
 
+(defn set-score! [gui new-score]
+  (dosync (ref-set score new-score))
+  (.setText (:score gui) (format "Score: %d" @score))
+  (.repaint (:score gui)))
+
 (def game-key-listener)
 
 (defn menu-key-listener [gui]
@@ -34,8 +39,9 @@
 	(.dispose (:frame gui))
 	(do 
 	  (clear-field!)
+	  (set-score! gui 0)
+	  (dosync (ref-set level 5) (ref-set current-block (get-random-block)))
 	  (change-key-listener (:panel gui) (game-key-listener gui))
-	  (dosync (ref-set current-block (get-random-block)))
 	  (.start (:timer gui))
 	  (.repaint (:panel gui)))))))
 
@@ -44,9 +50,8 @@
   (let [full (full-rows)]
     (when-not (empty? full)
       (doseq [y full] (expunge-row! y))
-      (dosync (alter score + (* (expt 2 @level) ([0 1 3 5 8] (count full)))))
-      (.setText (:score gui) (format "Score: %d" @score))
-      (.repaint (:score gui))))
+      (let [lines (count full)]
+	(set-score! gui (+ @score (* (expt 2 @level) ([0 1 3 5 8] lines)))))))
   (dosync (ref-set current-block (get-random-block)))
   (when-not (placeable? @current-block)
     (.stop (:timer gui))
@@ -79,7 +84,6 @@
       (.repaint (:panel gui)))))
 
 (defn game []
-  (dosync (ref-set level 5) (ref-set score 0))
   (let [timer (Timer. (levels @level) nil)
 	frame (JFrame. "Tetris")
 	score-label (JLabel. "Score: 0")
