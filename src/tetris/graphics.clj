@@ -1,5 +1,6 @@
 (ns tetris.graphics
-  (:use tetris.data))
+  (:use tetris.data)
+  (:import (java.awt Color)))
 
 ;; Size of a "point" on the screen in pixels. A "point" is the size of the
 ;; building blocks in the tetris shapes, i.e. 1/4 of the square."
@@ -15,7 +16,9 @@
   "Displays point pt on graphic device g as a rectangle in color."
   (let [[x y width height] (point-to-screen-rect pt)]
     (.setColor g color)
-    (.fillRect g x y width height)))
+    (.fillRect g x y width height)
+    (.setColor g Color/black)
+    (.drawRect g x y width height)))
 
 (defn paint-block [g block]
   "Paints a block to g."
