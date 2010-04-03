@@ -1,0 +1,4 @@
+#!/bin/bash
+LIBS=(`ls lib/clojure*.jar`)
+java -cp ${LIBS[0]}:${LIBS[1]}:src clojure.main \
+    -i src/tetris/main.clj -e "(tetris.main/game)" > /dev/null
