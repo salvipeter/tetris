@@ -3,7 +3,6 @@
 * Játszható szint
 - pause
 - next
-- automatikus pályaváltás
 - szebb panel (hely a nextnek, score-nak, levelnek)
 * Standard szint
 - szebb (kép-alapú) grafika
@@ -14,7 +13,6 @@
 - grafika (témák)
 - billentyűk
 - high scores törlése
-- éppen leérkezett blokk mozgatható-e még egy "ütemnyi" ideig
 * Profi szint
 - több játékosos üzemmód (hot-seat, net) [különböző változatok]
 - központi (netes) score

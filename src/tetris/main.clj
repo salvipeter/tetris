@@ -18,10 +18,25 @@
     (.removeKeyListener comp l))
   (.addKeyListener comp listener))
 
-(defn set-score! [gui new-score]
-  (dosync (ref-set score new-score))
-  (.setText (:score gui) (format "Score: %d" @score))
+(defn update-score [gui]
+  (.setText (:score gui)
+	    (format "Score: %4d | Lines: %3d | Level: %2d"
+		    @score @lines @level))
   (.repaint (:score gui)))
+
+(defn clear-score! [gui]
+  (dosync (ref-set score 0)
+	  (ref-set lines 0))
+  (update-score gui))
+
+(defn add-score! [gui removed]
+  (let [new-score (+ @score (* (expt 2 @level) ([0 1 3 5 8] removed)))]
+    (dosync (ref-set score new-score)
+	    (alter lines + removed)))
+  (when (> @lines (* 20 @level))
+    (dosync (alter level inc))
+    (.setDelay (:timer gui) (levels @level)))
+  (update-score gui))
 
 (def game-key-listener)
 
@@ -32,8 +47,9 @@
 	(.dispose (:frame gui))
 	(do 
 	  (clear-field!)
-	  (set-score! gui 0)
-	  (dosync (ref-set level 5) (ref-set current-block (get-random-block)))
+	  (dosync (ref-set level 1)
+		  (ref-set current-block (get-random-block)))
+	  (clear-score! gui)
 	  (change-key-listener (:panel gui) (game-key-listener gui))
 	  (.setDelay (:timer gui) (levels @level))
 	  (.start (:timer gui))
@@ -44,16 +60,12 @@
   (let [full (full-rows)]
     (when-not (empty? full)
       (doseq [y full] (expunge-row! y))
-      (let [lines (count full)]
-	(set-score! gui (+ @score (* (expt 2 @level) ([0 1 3 5 8] lines)))))))
+      (let [removed (count full)]
+	(add-score! gui removed))))
   (dosync (ref-set current-block (get-random-block)))
   (when-not (placeable? @current-block)
     (.stop (:timer gui))
     (change-key-listener (:panel gui) (menu-key-listener gui))))
-
-(defn reincarnate-block-if-needed [gui]
-  (when-not (placeable? (fall @current-block))
-    (reincarnate-block gui)))
 
 (defn game-key-listener [gui]
   (proxy [KeyAdapter] []
@@ -70,17 +82,17 @@
 	       [KeyEvent/VK_K KeyEvent/VK_DOWN]
 	       (dosync (alter current-block fall))
 	       [KeyEvent/VK_SPACE]
-	       (dosync (alter current-block drop-down))
+	       (do (dosync (alter current-block drop-down))
+		   (reincarnate-block gui))
 	       [KeyEvent/VK_Q]
 	       (do (.dispose (:frame gui))
 		   (.stop (:timer gui))))
-      (reincarnate-block-if-needed gui)
       (.repaint (:panel gui)))))
 
 (defn game []
   (let [timer (Timer. 0 nil)
 	frame (JFrame. "Tetris")
-	score-label (JLabel. "Score: 0")
+	score-label (JLabel. "Score:    0 | Lines:   0 | Level:  1")
 	panel (proxy [JPanel ActionListener] []
 		(paintComponent [g]
 		  (proxy-super paintComponent g)
@@ -90,8 +102,9 @@
 		(actionPerformed [e]
 		  (let [gui {:timer timer :frame frame :panel this
 			     :score score-label}]
-		    (dosync (alter current-block fall))
-		    (reincarnate-block-if-needed gui))
+		    (if (placeable? (fall @current-block))
+		      (dosync (alter current-block fall))
+		      (reincarnate-block gui)))
 		  (.repaint this))
 		(getPreferredSize []
 		  (Dimension. (* width point-size)
