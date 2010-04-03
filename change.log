@@ -1,0 +1,9 @@
+			  -*- mode: org -*-
+
+* 0.1.1
+- Versioning :)
+- Blocks now appear above (outside of) the playing field
+- Condition for game ending changed: the game ends if after a collision, the
+  current block has pixels outside the field. These last two changes solve
+  the painting-over-existing-blocks issue, and others too. I am also sure they
+  introduce a lot new problems, too :)

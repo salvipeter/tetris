@@ -98,15 +98,17 @@ the rotation phases they can take.")
 
 (let [default-block (struct block :square 0 [0 0])]
   (defn get-block
-    "Returns a block."
+    "Creates a block."
     ([] default-block)
     ([type] (assoc default-block :type type))
     ([type rotation] (assoc default-block :type type, :rotation rotation))
     ([type rotation position] (struct block type rotation position))))
 
 (defn block-shape [block]
+  "Returns block's shape matrix."
   (((:type block) block-types) (:rotation block)))
 (defn shape-element [shape [x y]]
+  "Tells whether [x y] in shape's bit matrix belongs to the shape, or is empty."
   (not (zero? (shape (+ (* 4 y) x)))))
 
 (def width 14)

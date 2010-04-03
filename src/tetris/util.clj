@@ -6,3 +6,9 @@
 
 (defn random-select [coll]
   (nth coll (rand (count coll))))
+
+(defmacro for-every? [seq-exprs body-expr]
+  `(every? identity (for ~seq-exprs ~body-expr)))
+
+(defmacro for-some [seq-exprs body-expr]
+  `(some identity (for ~seq-exprs ~body-expr)))
