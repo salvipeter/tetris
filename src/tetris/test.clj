@@ -9,7 +9,7 @@
            (java.awt.event KeyListener KeyEvent)
 	   (javax.swing JPanel JFrame)))
 
-(defn next-block [block]
+(defn next-type-of-block [block]
   "For testing: returns a block whose types comes after block's in block-types.
    The rotation of the new block will be 0."
   (let [types (keys block-types)
@@ -38,7 +38,7 @@
 			KeyEvent/VK_LEFT
 			(dosync (alter block rotate-left))
 			KeyEvent/VK_SPACE
-			(dosync (alter block next-block))
+			(dosync (alter block next-type-of-block))
 			KeyEvent/VK_Q
 			(.dispose frame))
 		  (.repaint this))
@@ -87,7 +87,7 @@
 			KeyEvent/VK_J
 			(dosync (alter block move-left))
 			KeyEvent/VK_I
-			(dosync (alter block next-block))
+			(dosync (alter block next-type-of-block))
 			KeyEvent/VK_K
 			(do (dosync (alter block fall))
 			    (when-not (placeable? (fall @block))

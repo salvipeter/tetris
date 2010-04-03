@@ -113,6 +113,7 @@ the rotation phases they can take.")
 (def height 20)
 (def field (take (* width height) (map ref (repeat :empty))))
 (def current-block (ref nil))
+(def next-block (ref nil))
 
 (defn clear-field! []
   (doseq [element field]

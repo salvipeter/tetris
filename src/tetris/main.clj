@@ -20,8 +20,8 @@
 
 (defn update-score [gui]
   (.setText (:score gui)
-	    (format "Score: %4d | Lines: %3d | Level: %2d"
-		    @score @lines @level))
+	    (format "Sco: %4d|Lin: %3d|Lev: %2d|Nex: %s"
+		    @score @lines @level (:type @next-block)))
   (.repaint (:score gui)))
 
 (defn clear-score! [gui]
@@ -48,7 +48,8 @@
 	(do 
 	  (clear-field!)
 	  (dosync (ref-set level 1)
-		  (ref-set current-block (get-random-block)))
+		  (ref-set current-block (get-random-block))
+		  (ref-set next-block (get-random-block)))
 	  (clear-score! gui)
 	  (change-key-listener (:panel gui) (game-key-listener gui))
 	  (.setDelay (:timer gui) (levels @level))
@@ -62,7 +63,9 @@
       (doseq [y full] (expunge-row! y))
       (let [removed (count full)]
 	(add-score! gui removed))))
-  (dosync (ref-set current-block (get-random-block)))
+  (dosync (ref-set current-block @next-block)
+	  (ref-set next-block (get-random-block)))
+  (update-score gui)
   (when-not (placeable? @current-block)
     (.stop (:timer gui))
     (change-key-listener (:panel gui) (menu-key-listener gui))))
@@ -92,7 +95,7 @@
 (defn game []
   (let [timer (Timer. 0 nil)
 	frame (JFrame. "Tetris")
-	score-label (JLabel. "Score:    0 | Lines:   0 | Level:  1")
+	score-label (JLabel. "Sco:    0|Lin:   0|Lev: 1|Nex: ")
 	panel (proxy [JPanel ActionListener] []
 		(paintComponent [g]
 		  (proxy-super paintComponent g)
