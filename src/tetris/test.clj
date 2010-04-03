@@ -90,7 +90,7 @@
 			(dosync (alter block next-block))
 			KeyEvent/VK_K
 			(do (dosync (alter block fall))
-			    (when-not (placeable? (fall @block))
+			    (when-not (no-collision? (fall @block))
 			      (new-block)))
 			KeyEvent/VK_SPACE
 			(do (dosync (alter block drop-down))

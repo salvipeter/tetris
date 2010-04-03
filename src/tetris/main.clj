@@ -7,13 +7,14 @@
 	tetris.util)
   (:import (java.awt Color Dimension BorderLayout)
            (java.awt.event ActionListener KeyAdapter KeyEvent)
-	   (javax.swing JFrame JLabel JPanel Timer)))
+           (javax.swing JFrame JLabel JPanel Timer)))
 
 (defn get-random-block []
   (get-block (random-select (keys block-types))
-	     0 [(- (/ width 2) 2) 0]))
+	     0 [(- (/ width 2) 2) -4]))
 
 (defn change-key-listener [comp listener]
+  (println "Changing listener...")
   (doseq [l (.getKeyListeners comp)]
     (.removeKeyListener comp l))
   (.addKeyListener comp listener))
@@ -36,24 +37,31 @@
 	  (dosync (ref-set level 5) (ref-set current-block (get-random-block)))
 	  (change-key-listener (:panel gui) (game-key-listener gui))
 	  (.setDelay (:timer gui) (levels @level))
+          (println "START!")
 	  (.start (:timer gui))
 	  (.repaint (:panel gui)))))))
 
-(defn reincarnate-block [gui]
+(defn handle-collision [gui]
+  "Handles the collision: deletes full rows or ends the game."
+  (println "Handling!")
   (record-block! @current-block)
-  (let [full (full-rows)]
-    (when-not (empty? full)
-      (doseq [y full] (expunge-row! y))
-      (let [lines (count full)]
-	(set-score! gui (+ @score (* (expt 2 @level) ([0 1 3 5 8] lines)))))))
-  (dosync (ref-set current-block (get-random-block)))
-  (when-not (placeable? @current-block)
-    (.stop (:timer gui))
-    (change-key-listener (:panel gui) (menu-key-listener gui))))
+  (if (block-out-of-playfield? @current-block)
+      (do
+        (.stop (:timer gui))
+        (change-key-listener (:panel gui) (menu-key-listener gui)))
+      (do
+        (let [full (full-rows)]
+          (when-not (empty? full)
+            (doseq [y full] (expunge-row! y))
+            (let [lines (count full)]
+              (set-score! gui (+ @score (* (expt 2 @level) ([0 1 3 5 8] lines)))))))
+        (dosync (ref-set current-block (get-random-block))))))
 
-(defn reincarnate-block-if-needed [gui]
-  (when-not (placeable? (fall @current-block))
-    (reincarnate-block gui)))
+(defn something-happened [gui]
+  "Called when something happens: user input, timer fired, etc. to handle the
+   possible consequences."
+  (when (collision? (fall @current-block))
+    (handle-collision gui)))
 
 (defn game-key-listener [gui]
   (proxy [KeyAdapter] []
@@ -74,7 +82,7 @@
 	       [KeyEvent/VK_Q]
 	       (do (.dispose (:frame gui))
 		   (.stop (:timer gui))))
-      (reincarnate-block-if-needed gui)
+      (something-happened gui)
       (.repaint (:panel gui)))))
 
 (defn game []
@@ -88,10 +96,11 @@
 		  (when @current-block
 		    (paint-block g @current-block)))
 		(actionPerformed [e]
+                  (println "ACTION!")
 		  (let [gui {:timer timer :frame frame :panel this
 			     :score score-label}]
 		    (dosync (alter current-block fall))
-		    (reincarnate-block-if-needed gui))
+		    (something-happened gui))
 		  (.repaint this))
 		(getPreferredSize []
 		  (Dimension. (* width point-size)
@@ -104,4 +113,4 @@
       (.setFocusable true)
       (.addKeyListener (menu-key-listener gui)))
     (doto frame (.setLayout (BorderLayout.)) (.add panel BorderLayout/CENTER)
-	  (.add score-label BorderLayout/SOUTH) (.pack) (.setVisible true))))
+                (.add score-label BorderLayout/SOUTH) (.pack) (.setVisible true))))

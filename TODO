@@ -25,3 +25,7 @@
   (nem törlődik a field)
 - a game-key-listener-ben a reincarnate-block-if-needed és a .repaint
   akkor is meghívódnak, ha q megnyomásával a frame már eltűnt
+- ha egy block kilóg a játéktérből, a játék véget ér. Akkor is, ha a block pont
+  úgy tüntetne el egy sort, hogy ezzel már teljesen a játéktér belsejébe kerülne.
+** Implementációs fájások
+- collision?, block-in-playfield?, stb: valahogy egyesíteni kéne a belső ciklust.
