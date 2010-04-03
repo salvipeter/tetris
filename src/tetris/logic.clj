@@ -1,7 +1,7 @@
 ;; I don't know if this file is really should be separate from data. Anyway...
 (ns tetris.logic
   (:use tetris.data
-	tetris.util))
+        tetris.util))
 
 (defn fall
   "Moves a block downwards (does not check for collision).
@@ -14,15 +14,15 @@ Both normal falling and fast-falling should use this function."
   "Judges whether the given block fits into the playing field. Pixels
 above the upper bounds of the playing field are not checked."
   (let [[x0 y0] (:position block)
-	shape (block-shape block)]
+        shape (block-shape block)]
     (for-every? [dx (range 4) dy (range 4)]
       (let [x (+ x0 dx)
-	    y (+ y0 dy)]
-	(or (not (shape-element shape [dx dy]))
-	    (and (<= 0 x (dec width))
-		 (or (< y 0)
-		     (and (<= y (dec height))
-			  (= (get-element [x y]) :empty)))))))))
+            y (+ y0 dy)]
+        (or (not (shape-element shape [dx dy]))
+            (and (<= 0 x (dec width))
+                 (or (< y 0)
+                     (and (<= y (dec height))
+                          (= (get-element [x y]) :empty)))))))))
 
 (defn collision? [block]
   "Judges if block collides with something - another block or the
@@ -34,20 +34,20 @@ edges of the playing field."
   "Checks if block is in the play field; that is, at least one of its
 pixels is. Assumes that the block is inside the field horizontally."
   (let [[x0 y0] (:position block)
-	shape (block-shape block)]
+        shape (block-shape block)]
     (for-some [dx (range 4) dy (range 4)]
       (let [y (+ y0 dy)]
-	(and (>= y 0) (shape-element shape [dx dy]))))))
+        (and (>= y 0) (shape-element shape [dx dy]))))))
 
 (defn block-out-of-playfield? [block]
   "Checks if block is out of the play field; that is, at least one of
 its pixels is."
   (let [[x0 y0] (:position block)
-	shape (block-shape block)]
+        shape (block-shape block)]
     (not (for-every? [dx (range 4) dy (range 4)]
-	   (let [y (+ y0 dy)]
-	     (or (not (shape-element shape [dx dy]))
-		 (and (<= 0 y (dec height)))))))))
+           (let [y (+ y0 dy)]
+             (or (not (shape-element shape [dx dy]))
+                 (and (<= 0 y (dec height)))))))))
 
 (defn drop-down [block]
   "Does not update the field. Returns a fresh block."
@@ -57,12 +57,12 @@ its pixels is."
   "Returns a lazy list of y-coordinates."
   []
   (filter (fn [y] (not-any? #(= (get-element [% y]) :empty) (range width)))
-	  (range height)))
+          (range height)))
 
 (defn record-block! [block]
   "Just another brick in the wall."
   (let [shape (block-shape block)
-	[x0 y0] (:position block)]
+        [x0 y0] (:position block)]
     (doseq [dx (range 4) dy (range 4)]
       (let [x (+ x0 dx)
             y (+ y0 dy)]
@@ -86,7 +86,7 @@ collision course. :)"
   [block dir]
   (let [result (rotate block dir)]
     (or (and (block-in-playfield? result) (no-collision? result) result)
-	block)))
+        block)))
 (defn rotate-left [block] (rotate-maybe block 1))
 (defn rotate-right [block] (rotate-maybe block -1))
 
@@ -102,6 +102,10 @@ collision course. :)"
   [block dir]
   (let [result (move block dir)]
     (or (and (block-in-playfield? result) (no-collision? result) result)
-	block)))
+        block)))
 (defn move-left [block] (move-maybe block -1))
 (defn move-right [block] (move-maybe block 1))
+
+;;; Local Variables:
+;;; indent-tabs-mode: nil
+;;; End:

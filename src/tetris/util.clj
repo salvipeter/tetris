@@ -12,3 +12,7 @@
 
 (defmacro for-some [seq-exprs body-expr]
   `(some identity (for ~seq-exprs ~body-expr)))
+
+;;; Local Variables:
+;;; indent-tabs-mode: nil
+;;; End:

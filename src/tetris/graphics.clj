@@ -23,14 +23,18 @@
 (defn paint-block [g block]
   "Paints a block to g."
   (let [color (block-colors (:type block))
-	shape (block-shape block)
-	position (:position block)]
+        shape (block-shape block)
+        position (:position block)]
     (doseq [x (range 4) y (range 4)]
       (when (shape-element shape [x y])
-	(fill-point g (map + position [x y]) color)))))
+        (fill-point g (map + position [x y]) color)))))
 
 (defn paint-field [g]
   (doseq [x (range width) y (range height)]
     (let [type (get-element [x y])]
       (when-not (= type :empty)
-	(fill-point g [x y] (block-colors type))))))
+        (fill-point g [x y] (block-colors type))))))
+
+;;; Local Variables:
+;;; indent-tabs-mode: nil
+;;; End:
