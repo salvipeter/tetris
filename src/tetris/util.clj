@@ -5,7 +5,7 @@
   (fn [& args] (apply f (concat args fixed-args))))
 
 (defn random-select [coll]
-  (nth coll (rand (count coll))))
+  (nth coll (rand-int (count coll))))
 
 (defmacro for-every? [seq-exprs body-expr]
   `(every? identity (for ~seq-exprs ~body-expr)))

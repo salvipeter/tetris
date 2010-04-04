@@ -10,8 +10,9 @@
            (javax.swing JFrame JLabel JPanel Timer)))
 
 (defn get-random-block []
-  (get-block (random-select (keys block-types))
-             0 [(- (/ width 2) 2) -4]))
+  (let [type (random-select (keys block-types))]
+    (get-block type (rand-int (count (block-types type)))
+               [(- (/ width 2) 2) -4])))
 
 (defn change-key-listener [comp listener]
   (println "Changing listener...")
@@ -21,8 +22,8 @@
 
 (defn update-score [gui]
   (.setText (:score gui)
-            (format "Sco: %4d|Lin: %3d|Lev: %2d|Nex: %s"
-                    @score @lines @level (:type @next-block)))
+            (format "Score: %4d | Lines: %3d | Level: %2d"
+                    @score @lines @level))
   (.repaint (:score gui)))
 
 (defn clear-score! [gui]
@@ -52,6 +53,7 @@
                   (ref-set current-block (get-random-block))
                   (ref-set next-block (get-random-block)))
           (clear-score! gui)
+          (.repaint (:next gui))
           (change-key-listener (:panel gui) (game-key-listener gui))
           (.setDelay (:timer gui) (levels @level))
           (println "START!")
@@ -72,7 +74,7 @@
           (add-score! gui removed)))
       (dosync (ref-set current-block @next-block)
               (ref-set next-block (get-random-block)))
-      (update-score gui))))
+      (.repaint (:next gui)))))
 
 (defn lower-block [gui]
   (if (no-collision? (fall @current-block))
@@ -104,7 +106,15 @@
 (defn game []
   (let [timer (Timer. 0 nil)
         frame (JFrame. "Tetris")
-        score-label (JLabel. "Sco:    0|Lin:   0|Lev: 1|Nex: ")
+        score-label (JLabel. "Score:    0 | Lines:   0 | Level: 1")
+        next-panel (proxy [JPanel] []
+                     (paintComponent [g]
+                       (proxy-super paintComponent g)
+                       (when @next-block
+                         (paint-block g (assoc @next-block :position [0 0]))))
+                     (getPreferredSize []
+                       (Dimension. (* 4 point-size)
+                                   (* 4 point-size))))
         panel (proxy [JPanel ActionListener] []
                 (paintComponent [g]
                   (proxy-super paintComponent g)
@@ -114,14 +124,16 @@
                 (actionPerformed [e]
                   (println "ACTION!")
                   (let [gui {:timer timer :frame frame :panel this
-                             :score score-label}]
+                             :next next-panel :score score-label}]
                     (lower-block gui))
                   (.repaint this))
                 (getPreferredSize []
                   (Dimension. (* width point-size)
                               (* height point-size))))
-        gui {:timer timer :frame frame :panel panel :score score-label}]
+        gui {:timer timer :frame frame :panel panel :next next-panel
+             :score score-label}]
     (dosync (ref-set current-block nil))
+    (.setBackground next-panel Color/white)
     (.addActionListener timer panel)
     (doto panel
       (.setBackground Color/black)
@@ -130,6 +142,7 @@
     (doto frame
       (.setLayout (BorderLayout.))
       (.add panel BorderLayout/CENTER)
+      (.add next-panel BorderLayout/EAST)
       (.add score-label BorderLayout/SOUTH)
       (.pack)
       (.setVisible true))))
