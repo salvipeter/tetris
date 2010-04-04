@@ -24,12 +24,6 @@ above the upper bounds of the playing field are not checked."
                      (and (<= y (dec height))
                           (= (get-element [x y]) :empty)))))))))
 
-(defn collision? [block]
-  "Judges if block collides with something - another block or the
-edges of the playing field."
-  (println "Collision: " (no-collision? block) " for block " block)
-  (not (no-collision? block)))
-
 (defn block-where? [block]
   "Tells the positions of all rows in the block's shape matrix, relative to the
 playing field. The possible values are :in, :out and :nil; the latter is
