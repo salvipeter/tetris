@@ -24,12 +24,6 @@ above the upper bounds of the playing field are not checked."
                      (and (<= y (dec height))
                           (= (get-element [x y]) :empty)))))))))
 
-(defn collision? [block]
-  "Judges if block collides with something - another block or the
-edges of the playing field."
-  (println "Collision: " (no-collision? block) " for block " block)
-  (not (no-collision? block)))
-
 (defn block-in-playfield? [block]
   "Checks if block is in the play field; that is, at least one of its
 pixels is. Assumes that the block is inside the field horizontally."

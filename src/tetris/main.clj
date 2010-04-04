@@ -74,6 +74,11 @@
               (ref-set next-block (get-random-block)))
       (update-score gui))))
 
+(defn lower-block [gui]
+  (if (no-collision? (fall @current-block))
+    (dosync (alter current-block fall))
+    (handle-collision gui)))
+
 (defn game-key-listener [gui]
   (proxy [KeyAdapter] []
     (keyPressed [e]
@@ -87,7 +92,7 @@
                [KeyEvent/VK_J KeyEvent/VK_LEFT]
                (dosync (alter current-block move-left))
                [KeyEvent/VK_K KeyEvent/VK_DOWN]
-               (dosync (alter current-block fall))
+               (lower-block gui) 
                [KeyEvent/VK_SPACE]
                (do (dosync (alter current-block drop-down))
                    (handle-collision gui))
@@ -110,9 +115,7 @@
                   (println "ACTION!")
                   (let [gui {:timer timer :frame frame :panel this
                              :score score-label}]
-                    (if (no-collision? (fall @current-block))
-                      (dosync (alter current-block fall))
-                      (handle-collision gui)))
+                    (lower-block gui))
                   (.repaint this))
                 (getPreferredSize []
                   (Dimension. (* width point-size)
