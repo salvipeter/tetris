@@ -26,5 +26,3 @@
   block pont úgy tüntetne el egy sort, hogy ezzel már teljesen a
   játéktér belsejébe kerülne.
 ** Implementációs fájások
-- collision?, block-in-playfield?, stb: valahogy egyesíteni kéne a
-  belső ciklust.

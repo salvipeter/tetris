@@ -30,24 +30,28 @@ edges of the playing field."
   (println "Collision: " (no-collision? block) " for block " block)
   (not (no-collision? block)))
 
+(defn block-where? [block]
+  "Tells the positions of all rows in the block's shape matrix, relative to the
+playing field. The possible values are :in, :out and :nil; the latter is
+returned for rows not containing a block pixel. Only the y coordinate is
+considered."
+  (let [[x0 y0] (:position block)
+        shape (block-shape block)]
+    (for [dx (range 4) dy (range 4)]
+      (let [y (+ y0 dy)]
+        (if (shape-element shape [dx dy])
+            (if (<= 0 y (dec height)) :in :out)
+            :nil)))))
+
 (defn block-in-playfield? [block]
   "Checks if block is in the play field; that is, at least one of its
 pixels is. Assumes that the block is inside the field horizontally."
-  (let [[x0 y0] (:position block)
-        shape (block-shape block)]
-    (for-some [dx (range 4) dy (range 4)]
-      (let [y (+ y0 dy)]
-        (and (>= y 0) (shape-element shape [dx dy]))))))
+  (some #(= :in %) (block-where? block)))
 
 (defn block-out-of-playfield? [block]
   "Checks if block is out of the play field; that is, at least one of
 its pixels is."
-  (let [[x0 y0] (:position block)
-        shape (block-shape block)]
-    (not (for-every? [dx (range 4) dy (range 4)]
-           (let [y (+ y0 dy)]
-             (or (not (shape-element shape [dx dy]))
-                 (and (<= 0 y (dec height)))))))))
+  (some #(= :out %) (block-where? block)))
 
 (defn drop-down [block]
   "Does not update the field. Returns a fresh block."
