@@ -26,16 +26,14 @@ above the upper bounds of the playing field are not checked."
 
 (defn block-where? [block]
   "Tells the positions of all rows in the block's shape matrix, relative to the
-playing field. The possible values are :in, :out and :nil; the latter is
+playing field. The possible values are :in, :out and nil; the latter is
 returned for rows not containing a block pixel. Only the y coordinate is
 considered."
-  (let [[x0 y0] (:position block)
+  (let [[_ y0] (:position block)
         shape (block-shape block)]
-    (for [dx (range 4) dy (range 4)]
-      (let [y (+ y0 dy)]
-        (if (shape-element shape [dx dy])
-            (if (<= 0 y (dec height)) :in :out)
-            :nil)))))
+    (for [dy (range 4)]
+      (when (for-some [dx (range 4)] (shape-element shape [dx dy]))
+        (if (<= 0 (+ y0 dy) (dec height)) :in :out)))))
 
 (defn block-in-playfield? [block]
   "Checks if block is in the play field; that is, at least one of its
