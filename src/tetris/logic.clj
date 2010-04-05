@@ -1,4 +1,3 @@
-;; I don't know if this file is really should be separate from data. Anyway...
 (ns tetris.logic
   (:use tetris.data
         tetris.util))
@@ -38,20 +37,19 @@ considered."
 (defn block-in-playfield? [block]
   "Checks if block is in the play field; that is, at least one of its
 pixels is. Assumes that the block is inside the field horizontally."
-  (some #(= :in %) (block-where? block)))
+  (some #{:in} (block-where? block)))
 
 (defn block-out-of-playfield? [block]
   "Checks if block is out of the play field; that is, at least one of
 its pixels is."
-  (some #(= :out %) (block-where? block)))
+  (some #{:out} (block-where? block)))
 
 (defn block-start-offset [block]
-  "Returns the y offset block needs so that it is just above the playing field
-   (sans empty lines)."
-  (loop [offset m-size, rows (block-where? block)]
-    (if (nth rows (dec offset))
-        (- 0 offset)
-        (recur (dec offset) rows))))
+  "Returns the y offset block needs so that it is just above the playing
+field (sans empty lines)."
+  (for-some [offset (range (- m-size) 0)
+             row (reverse (block-where? block))]
+    (and row offset)))
 
 (defn get-random-block []
   "Returns a random block positioned just above the playing field."

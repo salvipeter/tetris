@@ -10,13 +10,28 @@
              WindowListener)
            (javax.swing JFrame JLabel JPanel Timer WindowConstants)))
 
-(defn common-key-listener [gui]
-  "Handles shortcuts that behave the same irrespective of whether the game is
-   running or not."
-  (proxy [KeyAdapter] []
-    (keyPressed [#^KeyEvent e]
-      (when (= (.getKeyCode e) KeyEvent/VK_Q)
-        (.dispose (:frame gui))))))
+(defn actions-with-key-event-keys [actions]
+  (concat (mapcat (fn [[keys action]]
+                    (list (into [] (map (fn [key] `(. KeyEvent ~key)) keys))
+                          action))
+                  (partition 2 actions))
+          (when (odd? (count actions)) (list (last actions)))))
+
+(defmacro def-key-listener [name [gui-var] actions & finally]
+  (let [key (gensym "key")]
+    `(defn ~name [~gui-var]
+       (proxy [KeyAdapter] []
+	 (keyPressed [~(with-meta key {:tag KeyEvent})]
+	   (in-case (.getKeyCode ~key)
+	     ~@(actions-with-key-event-keys
+                 (concat `([VK_Q] (quit-game! ~gui-var)) actions)))
+	   ~@finally)))))
+
+(defn change-key-listener [comp listener]
+  "Removes all KeyListeners from comp and adds listener as the new KeyListener."
+  (doseq [l (.getKeyListeners comp)]
+    (.removeKeyListener comp l))
+  (.addKeyListener comp listener))
 
 (defn update-score [gui]
   (.setText (:score gui)
@@ -44,56 +59,48 @@
 
 (defn start-game! [gui]
   "Starts the game."
-  (do
-    (clear-field!)
-    (dosync
-      (ref-set level 1)
-      (ref-set current-block (get-random-block))
-      (ref-set next-block (get-random-block)))
-    (clear-score! gui)
-    (.repaint (:next gui))
-    (change-key-listener (:panel gui) (game-key-listener gui))
-    (.setVisible (.getGlassPane (:frame gui)) false)
-    (.setDelay (:timer gui) (levels @level))
-    (.start (:timer gui))
-    (.repaint (:panel gui))))
+  (clear-field!)
+  (dosync (ref-set level 1)
+          (ref-set current-block (get-random-block))
+          (ref-set next-block (get-random-block)))
+  (clear-score! gui)
+  (.repaint (:next gui))
+  (change-key-listener (:panel gui) (game-key-listener gui))
+  (.setVisible (.getGlassPane (:frame gui)) false)
+  (.setDelay (:timer gui) (levels @level))
+  (.start (:timer gui))
+  (.repaint (:panel gui)))
 
 (defn pause-game! [gui]
   "Pauses the game."
-  (do (.stop (:timer gui))
-      (.setVisible (.getGlassPane (:frame gui)) true)
-      (change-key-listener (:panel gui) (pause-key-listener gui))))
+  (.stop (:timer gui))
+  (.setVisible (.getGlassPane (:frame gui)) true)
+  (change-key-listener (:panel gui) (pause-key-listener gui)))
 
 (defn continue-game! [gui]
   "Continues the game after pause."
-  (do (.setVisible (.getGlassPane (:frame gui)) false)
-      (change-key-listener (:panel gui) (game-key-listener gui)))
-      (.start (:timer gui)))
+  (.setVisible (.getGlassPane (:frame gui)) false)
+  (change-key-listener (:panel gui) (game-key-listener gui))
+  (.start (:timer gui)))
 
 (defn end-game! [gui]
   "Ends the game."
-  (do (.stop (:timer gui))
-      (.setVisible (.getGlassPane (:frame gui)) true)
-      (change-key-listener (:panel gui) (menu-key-listener gui))))
+  (.stop (:timer gui))
+  (.setVisible (.getGlassPane (:frame gui)) true)
+  (change-key-listener (:panel gui) (menu-key-listener gui)))
 
 (defn quit-game! [gui]
   "Quits the game."
-  (do (.stop (:timer gui))
-      (.dispose (:frame gui))))
+  (.stop (:timer gui))
+  (.dispose (:frame gui)))
 
-(defn menu-key-listener [gui]
-  (proxy [KeyAdapter] []
-    (keyPressed [e]
-      (if (= (.getKeyCode e) KeyEvent/VK_Q)
-        (quit-game! gui)
-        (start-game! gui)))))
+(def-key-listener menu-key-listener [gui]
+  [;; only else-branch here (i.e. anything except VK_Q)
+   (start-game! gui)])
 
-(defn pause-key-listener [gui]
-  (proxy [KeyAdapter] []
-    (keyPressed [e]
-      (if (= (.getKeyCode e) KeyEvent/VK_Q)
-        (quit-game! gui)
-        (continue-game! gui)))))
+(def-key-listener pause-key-listener [gui]
+  [;; only else-branch here (i.e. anything except VK_Q)
+   (continue-game! gui)])
 
 (defn handle-collision [gui]
   "Handles the collision: deletes full rows or ends the game."
@@ -114,28 +121,16 @@
     (dosync (alter current-block fall))
     (handle-collision gui)))
 
-(defn game-key-listener [gui]
-  (proxy [KeyAdapter] []
-    (keyPressed [#^KeyEvent e]
-      (in-case (.getKeyCode e)
-               [KeyEvent/VK_O]
-               (dosync (alter current-block rotate-right))
-               [KeyEvent/VK_U KeyEvent/VK_UP]
-               (dosync (alter current-block rotate-left))
-               [KeyEvent/VK_L KeyEvent/VK_RIGHT]
-               (dosync (alter current-block move-right))
-               [KeyEvent/VK_J KeyEvent/VK_LEFT]
-               (dosync (alter current-block move-left))
-               [KeyEvent/VK_K KeyEvent/VK_DOWN]
-               (lower-block gui) 
-               [KeyEvent/VK_SPACE]
-               (do (dosync (alter current-block drop-down))
-                   (handle-collision gui))
-               [KeyEvent/VK_P]
-               (pause-game! gui)
-               [KeyEvent/VK_Q]
-               (quit-game! gui))
-      (.repaint (:panel gui)))))
+(def-key-listener game-key-listener [gui]
+  [[VK_O]          (dosync (alter current-block rotate-right))
+   [VK_U VK_UP]    (dosync (alter current-block rotate-left))
+   [VK_L VK_RIGHT] (dosync (alter current-block move-right))
+   [VK_J VK_LEFT]  (dosync (alter current-block move-left))
+   [VK_K VK_DOWN]  (lower-block gui)
+   [VK_SPACE]      (do (dosync (alter current-block drop-down))
+		       (handle-collision gui))
+   [VK_P]          (pause-game! gui)]
+  (.repaint (:panel gui)))
 
 (defn game []
   (let [timer (Timer. 0 nil)
