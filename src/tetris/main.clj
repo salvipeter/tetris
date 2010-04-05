@@ -14,14 +14,9 @@
   "Handles shortcuts that behave the same irrespective of whether the game is
    running or not."
   (proxy [KeyAdapter] []
-    (keyPressed [e]
+    (keyPressed [#^KeyEvent e]
       (when (= (.getKeyCode e) KeyEvent/VK_Q)
         (.dispose (:frame gui))))))
-
-(defn change-key-listener [comp listener]
-  (doseq [l (.getKeyListeners comp)]
-    (.removeKeyListener comp l))
-  (.addKeyListener comp listener))
 
 (defn update-score [gui]
   (.setText (:score gui)
@@ -121,7 +116,7 @@
 
 (defn game-key-listener [gui]
   (proxy [KeyAdapter] []
-    (keyPressed [e]
+    (keyPressed [#^KeyEvent e]
       (in-case (.getKeyCode e)
                [KeyEvent/VK_O]
                (dosync (alter current-block rotate-right))

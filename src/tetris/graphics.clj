@@ -1,8 +1,8 @@
 (ns tetris.graphics
   (:use [clojure.contrib.def :only (defvar)]
         tetris.data)
-  (:import (java.awt Color Graphics2D)
-           (javax.swing JPanel SwingUtilities)))
+  (:import (java.awt Color Component Graphics Graphics2D)
+           (javax.swing JComponent JPanel SwingUtilities)))
 
 (defvar point-size 20
   "Size of a \"point\" on the screen in pixels. A \"point\" is the size of the
@@ -14,7 +14,7 @@
   (map #(* point-size %)
        [(first pt) (second pt) 1 1]))
 
-(defn fill-point [g pt color]
+(defn fill-point [#^Graphics g pt #^Color color]
   "Displays point pt on graphic device g as a rectangle in color."
   (let [[x y width height] (point-to-screen-rect pt)]
     (.setColor g color)
@@ -37,13 +37,19 @@
       (when-not (= type :empty)
         (fill-point g [x y] (block-colors type))))))
 
-(defn dimmer-panel [color & comps]
+(defn change-key-listener [comp listener]
+  "Removes all KeyListeners from comp and adds listener as the new KeyListener."
+  (doseq [l (.getKeyListeners comp)]
+    (.removeKeyListener comp l))
+  (.addKeyListener comp listener))
+
+(defn dimmer-panel [#^Color color & comps]
   "Returns a panel is generally transparent, but provides a 50% translucency
    with the specified colors over components comps."
   (let [panel (proxy [JPanel] []
-                (paintComponent [g]
+                (paintComponent [#^Graphics g]
                   (proxy-super paintComponent g)
-                  (doseq [comp comps]
+                  (doseq [#^JComponent comp comps]
                     (let [#^Graphics2D g2 g,
                           crect (SwingUtilities/convertRectangle
                                   comp (.getVisibleRect comp) this)]
