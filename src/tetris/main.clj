@@ -58,6 +58,7 @@
     (clear-score! gui)
     (.repaint (:next gui))
     (change-key-listener (:panel gui) (game-key-listener gui))
+    (.setVisible (.getGlassPane (:frame gui)) false)
     (.setDelay (:timer gui) (levels @level))
     (.start (:timer gui))
     (.repaint (:panel gui))))
@@ -65,16 +66,19 @@
 (defn pause-game! [gui]
   "Pauses the game."
   (do (.stop (:timer gui))
+      (.setVisible (.getGlassPane (:frame gui)) true)
       (change-key-listener (:panel gui) (pause-key-listener gui))))
 
 (defn continue-game! [gui]
   "Continues the game after pause."
-  (do (change-key-listener (:panel gui) (game-key-listener gui)))
+  (do (.setVisible (.getGlassPane (:frame gui)) false)
+      (change-key-listener (:panel gui) (game-key-listener gui)))
       (.start (:timer gui)))
 
 (defn end-game! [gui]
   "Ends the game."
   (do (.stop (:timer gui))
+      (.setVisible (.getGlassPane (:frame gui)) true)
       (change-key-listener (:panel gui) (menu-key-listener gui))))
 
 (defn quit-game! [gui]
@@ -183,8 +187,10 @@
       (.add score-label BorderLayout/SOUTH)
       (.setDefaultCloseOperation WindowConstants/DO_NOTHING_ON_CLOSE)
       (.addWindowListener window-listener)
+      (.setGlassPane (dimmer-panel Color/DARK_GRAY panel next-panel))
       (.pack)
-      (.setVisible true))))
+      (.setVisible true))
+    (.setVisible (.getGlassPane frame) true)))
 
 ;;; Local Variables:
 ;;; indent-tabs-mode: nil

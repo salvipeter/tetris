@@ -1,7 +1,8 @@
 (ns tetris.graphics
   (:use [clojure.contrib.def :only (defvar)]
         tetris.data)
-  (:import (java.awt Color)))
+  (:import (java.awt Color Graphics2D)
+           (javax.swing JPanel SwingUtilities)))
 
 (defvar point-size 20
   "Size of a \"point\" on the screen in pixels. A \"point\" is the size of the
@@ -35,6 +36,24 @@
     (let [type (get-element [x y])]
       (when-not (= type :empty)
         (fill-point g [x y] (block-colors type))))))
+
+(defn dimmer-panel [color & comps]
+  "Returns a panel is generally transparent, but provides a 50% translucency
+   with the specified colors over components comps."
+  (let [panel (proxy [JPanel] []
+                (paintComponent [g]
+                  (proxy-super paintComponent g)
+                  (doseq [comp comps]
+                    (let [#^Graphics2D g2 g,
+                          crect (SwingUtilities/convertRectangle
+                                  comp (.getVisibleRect comp) this)]
+                      (.fill g2 crect)))))]
+    (doto panel
+      ; If this is not OK for some reason, (.setColor g ...) works for sure.
+      (.setForeground (Color. (.getRed color) (.getGreen color)
+                              (.getBlue color) 180))
+      (.setOpaque false))
+    panel))
 
 ;;; Local Variables:
 ;;; indent-tabs-mode: nil
