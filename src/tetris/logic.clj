@@ -15,7 +15,7 @@ Both normal falling and fast-falling should use this function."
 above the upper bounds of the playing field are not checked."
   (let [[x0 y0] (:position block)
         shape (block-shape block)]
-    (for-every? [dx (range 4) dy (range 4)]
+    (for-every? [dx (range m-size) dy (range m-size)]
       (let [x (+ x0 dx)
             y (+ y0 dy)]
         (or (not (shape-element shape [dx dy]))
@@ -31,8 +31,8 @@ returned for rows not containing a block pixel. Only the y coordinate is
 considered."
   (let [[_ y0] (:position block)
         shape (block-shape block)]
-    (for [dy (range 4)]
-      (when (for-some [dx (range 4)] (shape-element shape [dx dy]))
+    (for [dy (range m-size)]
+      (when (for-some [dx (range m-size)] (shape-element shape [dx dy]))
         (if (<= 0 (+ y0 dy) (dec height)) :in :out)))))
 
 (defn block-in-playfield? [block]
@@ -44,6 +44,21 @@ pixels is. Assumes that the block is inside the field horizontally."
   "Checks if block is out of the play field; that is, at least one of
 its pixels is."
   (some #(= :out %) (block-where? block)))
+
+(defn block-start-offset [block]
+  "Returns the y offset block needs so that it is just above the playing field
+   (sans empty lines)."
+  (loop [offset m-size, rows (block-where? block)]
+    (if (nth rows (dec offset))
+        (- 0 offset)
+        (recur (dec offset) rows))))
+
+(defn get-random-block []
+  "Returns a random block positioned just above the playing field."
+  (let [type (random-select (keys block-types))
+        rotation (rand-int (count (block-types type)))
+        block (get-block type rotation)]
+    (assoc block :position [(- (/ width 2) 2) (block-start-offset block)])))
 
 (defn drop-down [block]
   "Does not update the field. Returns a fresh block."
@@ -59,7 +74,7 @@ its pixels is."
   "Just another brick in the wall."
   (let [shape (block-shape block)
         [x0 y0] (:position block)]
-    (doseq [dx (range 4) dy (range 4)]
+    (doseq [dx (range m-size) dy (range m-size)]
       (let [x (+ x0 dx)
             y (+ y0 dy)]
         (when (and (>= y 0) (shape-element shape [dx dy]))

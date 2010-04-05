@@ -1,10 +1,11 @@
 (ns tetris.graphics
-  (:use tetris.data)
+  (:use [clojure.contrib.def :only (defvar)]
+        tetris.data)
   (:import (java.awt Color)))
 
-;; Size of a "point" on the screen in pixels. A "point" is the size of the
-;; building blocks in the tetris shapes, i.e. 1/4 of the square."
-(def point-size 20)
+(defvar point-size 20
+  "Size of a \"point\" on the screen in pixels. A \"point\" is the size of the
+   building blocks in the tetris shapes, i.e. 1/m-size of the square.")
 
 (defn point-to-screen-rect [pt]
   "Converts a point to a rectangle on the screen (more specifically, game panel).
@@ -25,7 +26,7 @@
   (let [color (block-colors (:type block))
         shape (block-shape block)
         position (:position block)]
-    (doseq [x (range 4) y (range 4)]
+    (doseq [x (range m-size) y (range m-size)]
       (when (shape-element shape [x y])
         (fill-point g (map + position [x y]) color)))))
 

@@ -9,11 +9,6 @@
            (java.awt.event ActionListener KeyAdapter KeyEvent)
            (javax.swing JFrame JLabel JPanel Timer)))
 
-(defn get-random-block []
-  (let [type (random-select (keys block-types))]
-    (get-block type (rand-int (count (block-types type)))
-               [(- (/ width 2) 2) -4])))
-
 (defn change-key-listener [comp listener]
   (println "Changing listener...")
   (doseq [l (.getKeyListeners comp)]
@@ -113,8 +108,8 @@
                        (when @next-block
                          (paint-block g (assoc @next-block :position [0 0]))))
                      (getPreferredSize []
-                       (Dimension. (* 4 point-size)
-                                   (* 4 point-size))))
+                       (Dimension. (* m-size point-size)
+                                   (* m-size point-size))))
         panel (proxy [JPanel ActionListener] []
                 (paintComponent [g]
                   (proxy-super paintComponent g)

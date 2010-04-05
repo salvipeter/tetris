@@ -83,6 +83,9 @@
   "Contrary to its name, this map contains not only the block types, but also
 the rotation phases they can take.")
 
+(defvar m-size 4
+  "Row & column size of the block matrices.")
+
 (defvar block-colors
   {:square Color/red
    :lright Color/yellow
@@ -109,7 +112,7 @@ the rotation phases they can take.")
   (((:type block) block-types) (:rotation block)))
 (defn shape-element [shape [x y]]
   "Tells whether [x y] in shape's bit matrix belongs to the shape, or is empty."
-  (not (zero? (shape (+ (* 4 y) x)))))
+  (not (zero? (shape (+ (* m-size y) x)))))
 
 (def width 14)
 (def height 20)

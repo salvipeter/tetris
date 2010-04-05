@@ -43,8 +43,8 @@
                         (.dispose frame))
                   (.repaint this))
                 (getPreferredSize []
-                  (Dimension. (* 4 point-size)
-                              (* 4 point-size)))
+                  (Dimension. (* m-size point-size)
+                              (* m-size point-size)))
                 (keyReleased [e])
                 (keyTyped [e]))]
     (doto panel (.setBackground Color/black)
