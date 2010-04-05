@@ -6,11 +6,19 @@
         tetris.logic
         tetris.util)
   (:import (java.awt Color Dimension BorderLayout)
-           (java.awt.event ActionListener KeyAdapter KeyEvent)
-           (javax.swing JFrame JLabel JPanel Timer)))
+           (java.awt.event ActionListener KeyAdapter KeyEvent WindowAdapter
+             WindowListener)
+           (javax.swing JFrame JLabel JPanel Timer WindowConstants)))
+
+(defn common-key-listener [gui]
+  "Handles shortcuts that behave the same irrespective of whether the game is
+   running or not."
+  (proxy [KeyAdapter] []
+    (keyPressed [e]
+      (when (= (.getKeyCode e) KeyEvent/VK_Q)
+        (.dispose (:frame gui))))))
 
 (defn change-key-listener [comp listener]
-  (println "Changing listener...")
   (doseq [l (.getKeyListeners comp)]
     (.removeKeyListener comp l))
   (.addKeyListener comp listener))
@@ -36,32 +44,63 @@
   (update-score gui))
 
 (def game-key-listener)
+(def pause-key-listener)
+(def menu-key-listener)
+
+(defn start-game! [gui]
+  "Starts the game."
+  (do
+    (clear-field!)
+    (dosync
+      (ref-set level 1)
+      (ref-set current-block (get-random-block))
+      (ref-set next-block (get-random-block)))
+    (clear-score! gui)
+    (.repaint (:next gui))
+    (change-key-listener (:panel gui) (game-key-listener gui))
+    (.setDelay (:timer gui) (levels @level))
+    (.start (:timer gui))
+    (.repaint (:panel gui))))
+
+(defn pause-game! [gui]
+  "Pauses the game."
+  (do (.stop (:timer gui))
+      (change-key-listener (:panel gui) (pause-key-listener gui))))
+
+(defn continue-game! [gui]
+  "Continues the game after pause."
+  (do (change-key-listener (:panel gui) (game-key-listener gui)))
+      (.start (:timer gui)))
+
+(defn end-game! [gui]
+  "Ends the game."
+  (do (.stop (:timer gui))
+      (change-key-listener (:panel gui) (menu-key-listener gui))))
+
+(defn quit-game! [gui]
+  "Quits the game."
+  (do (.stop (:timer gui))
+      (.dispose (:frame gui))))
 
 (defn menu-key-listener [gui]
   (proxy [KeyAdapter] []
     (keyPressed [e]
       (if (= (.getKeyCode e) KeyEvent/VK_Q)
-        (.dispose (:frame gui))
-        (do 
-          (clear-field!)
-          (dosync (ref-set level 1)
-                  (ref-set current-block (get-random-block))
-                  (ref-set next-block (get-random-block)))
-          (clear-score! gui)
-          (.repaint (:next gui))
-          (change-key-listener (:panel gui) (game-key-listener gui))
-          (.setDelay (:timer gui) (levels @level))
-          (println "START!")
-          (.start (:timer gui))
-          (.repaint (:panel gui)))))))
+        (quit-game! gui)
+        (start-game! gui)))))
+
+(defn pause-key-listener [gui]
+  (proxy [KeyAdapter] []
+    (keyPressed [e]
+      (if (= (.getKeyCode e) KeyEvent/VK_Q)
+        (quit-game! gui)
+        (continue-game! gui)))))
 
 (defn handle-collision [gui]
   "Handles the collision: deletes full rows or ends the game."
-  (println "Handling!")
   (record-block! @current-block)
   (if (block-out-of-playfield? @current-block)
-    (do (.stop (:timer gui))
-        (change-key-listener (:panel gui) (menu-key-listener gui)))
+    (end-game! gui)
     (let [full (full-rows)]
       (when-not (empty? full)
         (doseq [y full] (expunge-row! y))
@@ -93,9 +132,10 @@
                [KeyEvent/VK_SPACE]
                (do (dosync (alter current-block drop-down))
                    (handle-collision gui))
+               [KeyEvent/VK_P]
+               (pause-game! gui)
                [KeyEvent/VK_Q]
-               (do (.dispose (:frame gui))
-                   (.stop (:timer gui))))
+               (quit-game! gui))
       (.repaint (:panel gui)))))
 
 (defn game []
@@ -117,7 +157,6 @@
                   (when @current-block
                     (paint-block g @current-block)))
                 (actionPerformed [e]
-                  (println "ACTION!")
                   (let [gui {:timer timer :frame frame :panel this
                              :next next-panel :score score-label}]
                     (lower-block gui))
@@ -126,7 +165,10 @@
                   (Dimension. (* width point-size)
                               (* height point-size))))
         gui {:timer timer :frame frame :panel panel :next next-panel
-             :score score-label}]
+             :score score-label}
+        window-listener (proxy [WindowAdapter] []
+                          (windowClosing [e]
+                            (quit-game! gui)))]
     (dosync (ref-set current-block nil))
     (.setBackground next-panel Color/white)
     (.addActionListener timer panel)
@@ -139,6 +181,8 @@
       (.add panel BorderLayout/CENTER)
       (.add next-panel BorderLayout/EAST)
       (.add score-label BorderLayout/SOUTH)
+      (.setDefaultCloseOperation WindowConstants/DO_NOTHING_ON_CLOSE)
+      (.addWindowListener window-listener)
       (.pack)
       (.setVisible true))))
 
