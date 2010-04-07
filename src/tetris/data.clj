@@ -135,9 +135,9 @@ the rotation phases they can take.")
   (dosync (ref-set (nth field (+ (* y width) x)) val)))
 
 (def levels [nil 1000 800 600 500 400 300 240 180 130 80])
-(def level (ref nil))
-(def lines (ref nil))
-(def score (ref nil))
+(def level (ref 1))
+(def lines (ref 0))
+(def score (ref 0))
 
 ;;; Local Variables:
 ;;; indent-tabs-mode: nil

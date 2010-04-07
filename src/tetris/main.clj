@@ -1,14 +1,16 @@
 (ns tetris.main
   (:use [clojure.contrib.fcase :only (in-case)]
         [clojure.contrib.math :only (expt)]
+        [clojure.contrib.swing-utils :only (make-menubar)]
         tetris.data
         tetris.graphics
         tetris.logic
         tetris.util)
   (:import (java.awt Color Dimension BorderLayout)
            (java.awt.event ActionListener KeyAdapter KeyEvent WindowAdapter
-             WindowListener)
-           (javax.swing JFrame JLabel JPanel Timer WindowConstants)))
+                           WindowListener)
+           (javax.swing BorderFactory JFrame JLabel JPanel Timer
+                        WindowConstants)))
 
 (defn actions-with-key-event-keys [actions]
   (concat (mapcat (fn [[keys action]]
@@ -33,10 +35,12 @@
     (.removeKeyListener comp l))
   (.addKeyListener comp listener))
 
+(defn score-string []
+  (format "<HTML><BODY>Score: %4d<BR>Lines: %3d<BR>Level: %2d</BODY></HTML>"
+          @score @lines @level))
+
 (defn update-score [gui]
-  (.setText (:score gui)
-            (format "Score: %4d | Lines: %3d | Level: %2d"
-                    @score @lines @level))
+  (.setText (:score gui) (score-string))
   (.repaint (:score gui)))
 
 (defn clear-score! [gui]
@@ -132,10 +136,31 @@
    [VK_P]          (pause-game! gui)]
   (.repaint (:panel gui)))
 
+(defn handler-test [event]
+  (println "Handling test event."))
+
+(defn create-menus []
+  ;; use :accelerator for shortcuts and :handler for action handler functions
+  ;; also valid keys are :command-key :long-desc :short-desc :icon
+  (make-menubar
+   [{:name "Game" :mnemonic KeyEvent/VK_G
+     :items [{:name "Start" :mnemonic KeyEvent/VK_S :handler handler-test}
+             {:name "Highscores" :mnemonic KeyEvent/VK_H :handler handler-test}
+             {}                         ; separator
+             {:name "Quit" :mnemonic KeyEvent/VK_Q :handler handler-test}]}
+    {:name "Options" :mnemonic KeyEvent/VK_O
+     :items [{:name "Configure keys..." :mnemonic KeyEvent/VK_K
+              :handler handler-test}
+             {:name "Preferences..." :mnemonic KeyEvent/VK_P
+              :handler handler-test}]}
+    {:name "Help" :mnemonic KeyEvent/VK_H
+     :items [{:name "About..." :mnemonic KeyEvent/VK_A
+              :handler handler-test}]}]))
+
 (defn game []
   (let [timer (Timer. 0 nil)
         frame (JFrame. "Tetris")
-        score-label (JLabel. "Score:    0 | Lines:   0 | Level: 1")
+        score-label (JLabel. (score-string))
         next-panel (proxy [JPanel] []
                      (paintComponent [g]
                        (proxy-super paintComponent g)
@@ -170,16 +195,25 @@
       (.setBackground Color/black)
       (.setFocusable true)
       (.addKeyListener (menu-key-listener gui)))
-    (doto frame
-      (.setLayout (BorderLayout.))
-      (.add panel BorderLayout/CENTER)
-      (.add next-panel BorderLayout/EAST)
-      (.add score-label BorderLayout/SOUTH)
-      (.setDefaultCloseOperation WindowConstants/DO_NOTHING_ON_CLOSE)
-      (.addWindowListener window-listener)
-      (.setGlassPane (dimmer-panel Color/DARK_GRAY panel next-panel))
-      (.pack)
-      (.setVisible true))
+    (let [left-panel (JPanel. (BorderLayout.))
+          right-panel (JPanel. (BorderLayout.))]
+      (doto left-panel
+        (.add panel BorderLayout/CENTER)
+        (.setBorder (BorderFactory/createEmptyBorder 5 5 5 5)))
+      (doto right-panel
+        (.add next-panel BorderLayout/NORTH)
+        (.add score-label BorderLayout/CENTER)
+        (.setBorder (BorderFactory/createEmptyBorder 5 5 5 5)))
+      (doto frame
+        (.setLayout (BorderLayout.))
+        (.setJMenuBar (create-menus))
+        (.add left-panel BorderLayout/CENTER)
+        (.add right-panel BorderLayout/EAST)
+        (.setDefaultCloseOperation WindowConstants/DO_NOTHING_ON_CLOSE)
+        (.addWindowListener window-listener)
+        (.setGlassPane (dimmer-panel Color/DARK_GRAY panel next-panel))
+        (.pack)
+        (.setVisible true)))
     (.setVisible (.getGlassPane frame) true)))
 
 ;;; Local Variables:
